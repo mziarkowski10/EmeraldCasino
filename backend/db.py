@@ -64,7 +64,7 @@ def get_player(username):
         "exist": True
     }
 
-def update_balance(username, amount):
+def change_balance(username, amount):
     con, cur = connect_db()
     res = cur.execute("SELECT balance FROM player WHERE username = ?", (username,))
     res = res.fetchone()
