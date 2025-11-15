@@ -1,5 +1,7 @@
 from flask import request, jsonify, Blueprint
 from db import connect_db, create_db, add_player, player_exists, get_player, change_balance
+import random
+
 
 routes = Blueprint("routes", __name__)
 
@@ -85,5 +87,59 @@ def balance():
     return jsonify({
         "success": True,
         "username": username,
+        "balance": balance
+    })
+
+@routes.route("/spin", methods=["POST"])
+def spin():
+    data = request.get_json()
+    username, bet = data.get("username"), data.get("bet")
+    user_data = get_player(username)
+    balance = user_data.get("balance")
+
+    if not player_exists(username):
+        return jsonify({
+            "success": False,
+            "message": "Player does not exist",
+            "username": username
+        })
+
+    if bet > balance:
+        return jsonify({
+            "success": False,
+            "message": "Not enough balance",
+            "balance": balance,
+            "bet": bet
+        })
+
+    result = [random.choice(["🍒", "🍋", "⭐", "🔔", "💎"]) for i in range(3)]
+    multiplier = 0
+    multipliers_triple = {"🍒": 2, "🍋": 3, "⭐": 5, "🔔": 7, "💎": 10}
+    multipliers_pair = {"🍒": 1.5, "🍋": 2, "⭐": 3, "🔔": 4, "💎": 5}
+
+    if result[0] == result[1] == result[2]:
+        multiplier = multipliers_triple[result[0]]
+    elif result[0] == result[1] or result[0] == result[2]:
+        multiplier = multipliers_pair[result[0]]
+    elif result[1] == result[2]:
+        multiplier = multipliers_pair[result[1]]
+
+    win = bet * multiplier
+
+    if multiplier == 0:
+        win_amount = -bet
+        balance += win_amount
+    else:
+        win_amount = win - bet
+        balance += win_amount
+
+    change_balance(username, win_amount)
+
+    return jsonify({
+        "success": True,
+        "username": username,
+        "result": result,
+        "bet": bet,
+        "win_amount": win_amount,
         "balance": balance
     })

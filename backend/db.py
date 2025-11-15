@@ -1,5 +1,6 @@
 import sqlite3
 
+
 def connect_db():
     con = sqlite3.connect("casino.db")
     cur = con.cursor()
