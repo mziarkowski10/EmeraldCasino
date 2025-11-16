@@ -98,3 +98,9 @@ def change_balance(username, amount):
         "balance": total,
         "message": "Balance updated successfully"
     }
+
+def clear_players():
+    con, cur = connect_db()
+    cur.execute("DELETE FROM player")
+    con.commit()
+    con.close()
