@@ -1,5 +1,5 @@
 from flask import request, jsonify, Blueprint
-from db import connect_db, create_db, add_player, player_exists, get_player, change_balance
+from backend.db import connect_db, create_db, add_player, player_exists, get_player, change_balance
 import random
 
 
