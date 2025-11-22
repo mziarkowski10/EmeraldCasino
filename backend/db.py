@@ -10,6 +10,17 @@ def connect_db():
 def create_db():
     con, cur = connect_db()
 
+    cur.execute('''CREATE TABLE IF NOT EXISTS history(
+        id INTEGER PRIMARY KEY,
+        username TEXT NOT NULL,
+        game TEXT,
+        bet REAL NOT NULL,
+        result_amount REAL NOT NULL,
+        final_balance REAL NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     cur.execute('''CREATE TABLE IF NOT EXISTS player(
         id INTEGER PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
@@ -102,5 +113,35 @@ def change_balance(username, amount):
 def clear_players():
     con, cur = connect_db()
     cur.execute("DELETE FROM player")
+    con.commit()
+    con.close()
+
+def add_history(username, game, bet, result_amount, final_balance):
+    con, cur = connect_db()
+
+    if not username:
+        return {
+            "success": False,
+            "message": "Username is required"
+        }
+    
+    if not (isinstance(bet, (int, float)) and isinstance(result_amount, (int, float)) and isinstance(final_balance, (int, float))):
+        return {
+            "success": False,
+            "message": "Bet, result_amount and final_balance must be numbers"
+        }
+
+    cur.execute("INSERT INTO history(username, game, bet, result_amount, final_balance) VALUES(?, ?, ?, ?, ?)", (username, game, bet, result_amount, final_balance))
+    con.commit()
+    con.close()
+
+    return {
+        "success": True,
+        "message": "History added successfully"
+    }
+
+def clear_history():
+    con, cur = connect_db()
+    cur.execute("DELETE FROM history")
     con.commit()
     con.close()

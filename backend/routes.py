@@ -1,5 +1,5 @@
 from flask import request, jsonify, Blueprint
-from backend.db import connect_db, create_db, add_player, player_exists, get_player, change_balance
+from backend.db import connect_db, create_db, add_player, player_exists, get_player, change_balance, add_history
 import random
 
 
@@ -134,6 +134,7 @@ def spin():
         balance += win_amount
 
     change_balance(username, win_amount)
+    add_history(username, "spin", bet, win_amount, balance)
 
     return jsonify({
         "success": True,

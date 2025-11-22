@@ -1,5 +1,5 @@
-from backend.routes import register, login, update_balance, balance, spin
 from backend.db import connect_db, create_db, add_player, player_exists, get_player, change_balance, clear_players
+from backend.routes import register, login, update_balance, balance, spin
 import pytest
 import os
 import sqlite3

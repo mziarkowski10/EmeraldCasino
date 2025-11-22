@@ -1,8 +1,10 @@
-from backend.db import connect_db, create_db, add_player, player_exists, get_player, change_balance, clear_players
+from backend.db import connect_db, create_db, add_player, player_exists, get_player, change_balance, clear_players, clear_history, add_history
 import os
 import sqlite3
 import pytest
 
+
+create_db()
 
 def test_clear_players():
     add_player("Maelle")
@@ -12,7 +14,7 @@ def test_clear_players():
     assert res["exist"] == False
 
 def test_db_exists():
-    assert os.path.exists("backend/casino.db")
+    assert os.path.exists("casino.db")
 
     clear_players()
 
@@ -86,3 +88,49 @@ def test_change_balance():
         assert res["balance"] == expected_balance
 
     clear_players()
+
+def test_clear_history():
+    clear_history()
+    add_history("Maks", "spin", 100, 0, 900)
+    clear_history()
+
+    con, cur = connect_db()
+    cur.execute("SELECT * from history")
+    rows = cur.fetchall()
+    con.close()
+
+    assert not rows
+
+def test_add_history_loss():
+    clear_history()
+    add_history("Maks", "spin", 100, 0, 900)
+
+    con, cur = connect_db()
+    cur.execute("SELECT * from history WHERE username = ?", ("Maks",))
+    res = cur.fetchone()
+    id, username, game, bet, result_amount, final_balance, timestamp = res
+    con.close()
+
+    assert id == 1
+    assert username == "Maks"
+    assert game == "spin"
+    assert bet == 100
+    assert result_amount == 0
+    assert final_balance == 900
+
+def test_add_history_win():
+    clear_history()
+    add_history("Maks", "spin", 100, 200, 1100)
+
+    con, cur = connect_db()
+    cur.execute("SELECT * FROM history WHERE username = ?", ("Maks",))
+    res = cur.fetchone()
+    id, username, game, bet, result_amount, final_balance, timestamp = res
+    con.close()
+
+    assert id == 1
+    assert username == "Maks"
+    assert game == "spin"
+    assert bet == 100
+    assert result_amount == 200
+    assert final_balance == 1100
