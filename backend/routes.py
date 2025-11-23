@@ -1,5 +1,5 @@
 from flask import request, jsonify, Blueprint
-from backend.db import connect_db, create_db, add_player, player_exists, get_player, change_balance, add_history
+from backend.db import connect_db, create_db, add_player, player_exists, get_player, change_balance, add_history, get_player_by_id, player_exists_by_id
 import random
 
 
@@ -95,7 +95,7 @@ def spin():
     data = request.get_json()
     username, bet = data.get("username"), data.get("bet")
     user_data = get_player(username)
-    balance = user_data.get("balance")
+    pid, balance = user_data.get("player_id"), user_data.get("balance")
 
     if not player_exists(username):
         return jsonify({
@@ -134,7 +134,7 @@ def spin():
         balance += win_amount
 
     change_balance(username, win_amount)
-    add_history(username, "spin", bet, win_amount, balance)
+    add_history(pid, "spin", bet, win, balance)
 
     return jsonify({
         "success": True,
@@ -144,3 +144,14 @@ def spin():
         "win_amount": win_amount,
         "balance": balance
     })
+
+@routes.route("/history", methods=["GET"])
+def history():
+    player_id = request.args.get("player_id")
+    
+    if not player_exists_by_id(player_id):
+        return jsonify({
+            "success": False,
+            "message": "Player does not exist",
+            "player_id": player_id
+        })
